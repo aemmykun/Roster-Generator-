@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Housekeeping Roster</title>
+  https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Housekeeping Roster</h1>
+    <nav>
+      <a href="#">Staff</a>
+      <a href="#">Availability</a>
+      <a href="#">Tasks</a>
+      <a href="#">Schedule</a>
+      <a href="#">Settings</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="settings">
+      <h2>System Settings</h2>
+      <label>Minutes per Housekeeper: <input type="number" value="30" /></label>
+      <label>Supervisor Threshold (minutes): <input type="number" value="60" /></label>
+    </section>
+
+    <section class="staff">
+      <h2>Staff Management</h2>
+      <form>
+        <input type="text" placeholder="Staff Name" />
+        <select multiple>
+          <option>Supervisor</option>
+          <option>Housekeeper</option>
+          <option>Houseman</option>
+          <option>Common Area</option>
+        </select>
+        <button type="submit">Add Staff</button>
+      </form>
+
+      <ul class="staff-list">
+        <li>Jane Doe – Housekeeper</li>
+        <li>John Smith – Supervisor</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
