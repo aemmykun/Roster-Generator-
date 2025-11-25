@@ -13,23 +13,34 @@ saturday: 1800,
 sunday: 1600
 });
 
-const [staffData] = useState({
-Em: { primary: ‘HM’, crossTrained: [‘Sup’], type: ‘Full time’, minHours: 2280, maxHours: 2280, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’] },
-Soon: { primary: ‘HK’, crossTrained: [‘Sup’], type: ‘Part time’, minHours: 1800, maxHours: 2100, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Fri’, ‘Sat’, ‘Sun’] },
-Jann: { primary: ‘HK’, crossTrained: [‘Sup’], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Sat’, ‘Sun’] },
-Bhavna: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1440, maxHours: 1800, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’] },
-Maylada: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1440, maxHours: 1800, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’] },
-Rupa: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1440, maxHours: 1800, availability: [‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’] },
-Ramandeep: { primary: ‘CA’, crossTrained: [‘HK’], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’] },
-Kate: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Mon’, ‘Wed’, ‘Thu’, ‘Sun’] },
-Deepinder: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Tue’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’] },
-Marzana: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Wed’, ‘Thu’, ‘Sat’, ‘Sun’] },
-Wendy: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 720, maxHours: 1080, availability: [‘Tue’, ‘Sat’] },
-Kiki: { primary: ‘HK’, crossTrained: [], type: ‘Casual’, minHours: 300, maxHours: 720, availability: [‘Mon’, ‘Wed’] },
-Kay: { primary: ‘HM’, crossTrained: [‘CA’], type: ‘Casual’, minHours: 420, maxHours: 720, availability: [‘Tue’, ‘Thu’] },
-Harold: { primary: ‘HM’, crossTrained: [‘CA’], type: ‘Casual’, minHours: 1080, maxHours: 1440, availability: [‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’] },
-Santiago: { primary: ‘HM’, crossTrained: [‘CA’], type: ‘Casual’, minHours: 720, maxHours: 1440, availability: [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’] }
-});
+
+const [staffData, setStaffData] = useState({});
+const [isLoading, setIsLoading] = useState(true);
+const [loadError, setLoadError] = useState(null);
+
+useEffect(() => {
+const loadStaffData = async () => {
+  try {
+    setIsLoading(true);
+    setLoadError(null);
+    const response = await fetch('./staff-data.json');
+    if (!response.ok) {
+      throw new Error(`Failed to load staff data: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (!data.staff || typeof data.staff !== 'object') {
+      throw new Error('Invalid staff data format');
+    }
+    setStaffData(data.staff);
+  } catch (error) {
+    setLoadError(error.message);
+    console.error('Error loading staff data:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+loadStaffData();
+}, []);
 
 const [algorithmSteps] = useState([
 “Step 1: Analyze Workload Patterns”,
@@ -54,7 +65,7 @@ const workloadByDay = [
 { day: ‘Sun’, workload: workloadData.sunday, priority: ‘Critical’ }
 ];
 
-```
+
 // Step 1: Calculate required staff per day (assuming 400 minutes per staff member)
 const requiredStaff = workloadByDay.map(d => ({
   ...d,
@@ -122,14 +133,14 @@ Object.entries(staffData).forEach(([name, staff]) => {
 });
 
 setRosterOutput({ roster, requiredStaff });
-```
+
 
 };
 
 const getRosterAnalysis = () => {
 if (!rosterOutput) return null;
 
-```
+
 const analysis = [];
 Object.entries(rosterOutput.roster).forEach(([day, staff]) => {
   const required = rosterOutput.requiredStaff.find(d => d.day === day);
@@ -143,9 +154,46 @@ Object.entries(rosterOutput.roster).forEach(([day, staff]) => {
   });
 });
 return analysis;
-```
+
 
 };
+
+if (isLoading) {
+return (
+  <div className="max-w-6xl mx-auto p-6 bg-white text-center">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Hospitality Rostering Algorithm</h1>
+      <p className="text-gray-600">Loading staff data...</p>
+    </div>
+    <div className="animate-pulse flex justify-center">
+      <div className="h-8 w-8 bg-blue-500 rounded-full"></div>
+    </div>
+  </div>
+);
+}
+
+if (loadError) {
+return (
+  <div className="max-w-6xl mx-auto p-6 bg-white">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Hospitality Rostering Algorithm</h1>
+    </div>
+    <div className="bg-red-50 border-2 border-red-200 p-6 rounded-lg">
+      <div className="flex items-center mb-4">
+        <AlertCircle className="mr-2 text-red-500" size={24} />
+        <h2 className="text-xl font-semibold text-red-700">Error Loading Staff Data</h2>
+      </div>
+      <p className="text-red-600">{loadError}</p>
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+);
+}
 
 return (
 <div className="max-w-6xl mx-auto p-6 bg-white">
@@ -154,7 +202,6 @@ return (
 <p className="text-gray-600">Intelligent staff scheduling based on workload, availability, and operational requirements</p>
 </div>
 
-```
   {/* Algorithm Steps */}
   <div className="mb-8">
     <h2 className="text-xl font-semibold mb-4 flex items-center">
@@ -325,7 +372,7 @@ return (
     </div>
   </div>
 </div>
-```
+
 
 );
 };

@@ -1,0 +1,124 @@
+{
+  "staff": {
+    "Em": {
+      "primary": "HM",
+      "crossTrained": ["Sup"],
+      "type": "Full time",
+      "minHours": 2280,
+      "maxHours": 2280,
+      "availability": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    },
+    "Soon": {
+      "primary": "HK",
+      "crossTrained": ["Sup"],
+      "type": "Part time",
+      "minHours": 1800,
+      "maxHours": 2100,
+      "availability": ["Mon", "Tue", "Wed", "Fri", "Sat", "Sun"]
+    },
+    "Jann": {
+      "primary": "HK",
+      "crossTrained": ["Sup"],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Mon", "Tue", "Wed", "Sat", "Sun"]
+    },
+    "Bhavna": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1440,
+      "maxHours": 1800,
+      "availability": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    },
+    "Maylada": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1440,
+      "maxHours": 1800,
+      "availability": ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    },
+    "Rupa": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1440,
+      "maxHours": 1800,
+      "availability": ["Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    },
+    "Ramandeep": {
+      "primary": "CA",
+      "crossTrained": ["HK"],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    },
+    "Kate": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Mon", "Wed", "Thu", "Sun"]
+    },
+    "Deepinder": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Tue", "Thu", "Fri", "Sat", "Sun"]
+    },
+    "Marzana": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Wed", "Thu", "Sat", "Sun"]
+    },
+    "Wendy": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 720,
+      "maxHours": 1080,
+      "availability": ["Tue", "Sat"]
+    },
+    "Kiki": {
+      "primary": "HK",
+      "crossTrained": [],
+      "type": "Casual",
+      "minHours": 300,
+      "maxHours": 720,
+      "availability": ["Mon", "Wed"]
+    },
+    "Kay": {
+      "primary": "HM",
+      "crossTrained": ["CA"],
+      "type": "Casual",
+      "minHours": 420,
+      "maxHours": 720,
+      "availability": ["Tue", "Thu"]
+    },
+    "Harold": {
+      "primary": "HM",
+      "crossTrained": ["CA"],
+      "type": "Casual",
+      "minHours": 1080,
+      "maxHours": 1440,
+      "availability": ["Thu", "Fri", "Sat", "Sun"]
+    },
+    "Santiago": {
+      "primary": "HM",
+      "crossTrained": ["CA"],
+      "type": "Casual",
+      "minHours": 720,
+      "maxHours": 1440,
+      "availability": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    }
+  }
+}
