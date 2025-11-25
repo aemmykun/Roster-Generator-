@@ -429,6 +429,7 @@ const RosteringAlgorithm = () => {
   /**
    * Handles the algorithm execution with visual step progression.
    * Animates through each step before generating the final roster.
+   * Uses recursive setTimeout pattern for cleaner state management.
    */
   const handleRunAlgorithm = useCallback(() => {
     if (isRunning) return;
@@ -437,19 +438,21 @@ const RosteringAlgorithm = () => {
     setCurrentStep(0);
     setRosterOutput(null);
 
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      if (step < ALGORITHM_STEPS.length) {
-        setCurrentStep(step);
+    const animateSteps = (currentStepIndex) => {
+      if (currentStepIndex < ALGORITHM_STEPS.length - 1) {
+        setTimeout(() => {
+          setCurrentStep(currentStepIndex + 1);
+          animateSteps(currentStepIndex + 1);
+        }, 800);
       } else {
-        clearInterval(interval);
         setTimeout(() => {
           runAlgorithm();
           setIsRunning(false);
         }, 500);
       }
-    }, 800);
+    };
+
+    animateSteps(0);
   }, [isRunning, runAlgorithm]);
 
   // Memoize roster analysis to prevent recalculation on unrelated state changes
@@ -540,7 +543,7 @@ const RosteringAlgorithm = () => {
             <AlertCircle className="mr-2 flex-shrink-0" size={20} />
             Roster Analysis
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
             {rosterAnalysis.map(analysis => (
               <AnalysisCard key={analysis.day} analysis={analysis} />
             ))}
