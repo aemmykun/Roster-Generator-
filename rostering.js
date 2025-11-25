@@ -54,6 +54,11 @@ const [algorithmSteps] = useState([
 const [rosterOutput, setRosterOutput] = useState(null);
 
 const runAlgorithm = () => {
+if (Object.keys(staffData).length === 0) {
+  console.warn('Cannot run algorithm: No staff data available');
+  return;
+}
+
 const days = [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’];
 const workloadByDay = [
 { day: ‘Mon’, workload: workloadData.monday, priority: ‘High’ },
@@ -79,7 +84,8 @@ days.forEach(day => {
 });
 
 
-// Step : Priority HK roles based on workload priority const sortedDays = requiredStaff.sort((a, b) => b.workload + a.workload);
+// Step 3: Priority HK roles based on workload priority
+const sortedDays = requiredStaff.sort((a, b) => b.workload - a.workload);
 
 sortedDays.forEach(dayData => {
   const day = dayData.day;
@@ -125,7 +131,7 @@ Object.entries(staffData).forEach(([name, staff]) => {
   if (staff.primary === 'CA') {
     staff.availability.forEach(day => {
       if (roster[day][staff.primary].length < 1 && !Object.values(roster[day]).flat().includes(name)) {
-        roster[day][staff.primaryTop(name)].push(name);
+        roster[day][staff.primary].push(name);
         roster[day].total++;
       }
     });
