@@ -18,12 +18,11 @@ const [staffData, setStaffData] = useState({});
 const [isLoading, setIsLoading] = useState(true);
 const [loadError, setLoadError] = useState(null);
 
-useEffect(() => {
 const loadStaffData = async () => {
   try {
     setIsLoading(true);
     setLoadError(null);
-    const response = await fetch('./staff-data.json');
+    const response = await fetch('/staff-data.json');
     if (!response.ok) {
       throw new Error(`Failed to load staff data: ${response.status} ${response.statusText}`);
     }
@@ -44,6 +43,8 @@ const loadStaffData = async () => {
     setIsLoading(false);
   }
 };
+
+useEffect(() => {
 loadStaffData();
 }, []);
 
@@ -59,8 +60,8 @@ const [algorithmSteps] = useState([
 const [rosterOutput, setRosterOutput] = useState(null);
 
 const runAlgorithm = () => {
-if (Object.keys(staffData).length === 0) {
-  console.warn('Cannot run algorithm: No staff data available');
+if (isLoading || Object.keys(staffData).length === 0) {
+  console.warn('Cannot run algorithm: Staff data is still loading or not available');
   return;
 }
 
@@ -196,7 +197,7 @@ return (
       </div>
       <p className="text-red-600">{loadError}</p>
       <button
-        onClick={() => window.location.reload()}
+        onClick={loadStaffData}
         className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
       >
         Retry
