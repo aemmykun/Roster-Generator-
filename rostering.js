@@ -28,7 +28,12 @@ const loadStaffData = async () => {
       throw new Error(`Failed to load staff data: ${response.status} ${response.statusText}`);
     }
     const data = await response.json();
-    if (!data.staff || typeof data.staff !== 'object') {
+    if (
+      !data.staff ||
+      typeof data.staff !== 'object' ||
+      Array.isArray(data.staff) ||
+      Object.keys(data.staff).length === 0
+    ) {
       throw new Error('Invalid staff data format');
     }
     setStaffData(data.staff);
