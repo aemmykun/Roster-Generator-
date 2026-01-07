@@ -11,83 +11,81 @@ const MINUTES_PER_STAFF = 400;
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const ROLE_TYPES = ['Sup', 'HK', 'HM', 'CA'];
 
-/**
- * Priority weights for day-based staffing decisions.
- * Higher values indicate higher priority for staff allocation.
- */
-const PRIORITY_WEIGHTS = {
-  Critical: 4,
-  High: 3,
-  Medium: 2,
-  Low: 1
+
+const [staffData, setStaffData] = useState({});
+const [isLoading, setIsLoading] = useState(true);
+const [loadError, setLoadError] = useState(null);
+
+const loadStaffData = async () => {
+  try {
+    setIsLoading(true);
+    setLoadError(null);
+    const response = await fetch('/staff-data.json');
+    if (!response.ok) {
+      throw new Error(`Failed to load staff data: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (
+      !data.staff ||
+      typeof data.staff !== 'object' ||
+      Array.isArray(data.staff) ||
+      Object.keys(data.staff).length === 0
+    ) {
+      throw new Error('Invalid staff data format');
+    }
+    setStaffData(data.staff);
+  } catch (error) {
+    setLoadError(error.message);
+    console.error('Error loading staff data:', error);
+  } finally {
+    setIsLoading(false);
+  }
 };
 
-/**
- * Default staff data containing employee information including:
- * - primary: Main role assignment (HM=Houseman, HK=Housekeeper, CA=Common Area, Sup=Supervisor)
- * - crossTrained: Additional roles the staff member can fill
- * - type: Employment type (Full time, Part time, Casual)
- * - minHours/maxHours: Contracted hour ranges
- * - availability: Days the staff member is available to work
- */
-const DEFAULT_STAFF_DATA = {
-  Em: { primary: 'HM', crossTrained: ['Sup'], type: 'Full time', minHours: 2280, maxHours: 2280, availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
-  Soon: { primary: 'HK', crossTrained: ['Sup'], type: 'Part time', minHours: 1800, maxHours: 2100, availability: ['Mon', 'Tue', 'Wed', 'Fri', 'Sat', 'Sun'] },
-  Jann: { primary: 'HK', crossTrained: ['Sup'], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Mon', 'Tue', 'Wed', 'Sat', 'Sun'] },
-  Bhavna: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1440, maxHours: 1800, availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
-  Maylada: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1440, maxHours: 1800, availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] },
-  Rupa: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1440, maxHours: 1800, availability: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-  Ramandeep: { primary: 'CA', crossTrained: ['HK'], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-  Kate: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Mon', 'Wed', 'Thu', 'Sun'] },
-  Deepinder: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Tue', 'Thu', 'Fri', 'Sat', 'Sun'] },
-  Marzana: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Wed', 'Thu', 'Sat', 'Sun'] },
-  Wendy: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 720, maxHours: 1080, availability: ['Tue', 'Sat'] },
-  Kiki: { primary: 'HK', crossTrained: [], type: 'Casual', minHours: 300, maxHours: 720, availability: ['Mon', 'Wed'] },
-  Kay: { primary: 'HM', crossTrained: ['CA'], type: 'Casual', minHours: 420, maxHours: 720, availability: ['Tue', 'Thu'] },
-  Harold: { primary: 'HM', crossTrained: ['CA'], type: 'Casual', minHours: 1080, maxHours: 1440, availability: ['Thu', 'Fri', 'Sat', 'Sun'] },
-  Santiago: { primary: 'HM', crossTrained: ['CA'], type: 'Casual', minHours: 720, maxHours: 1440, availability: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] }
-};
+useEffect(() => {
+loadStaffData();
+}, []);
 
-/**
- * Default workload data representing task minutes for each day of the week.
- */
-const DEFAULT_WORKLOAD_DATA = {
-  monday: 2600,
-  tuesday: 2400,
-  wednesday: 1800,
-  thursday: 1400,
-  friday: 1500,
-  saturday: 1800,
-  sunday: 1600
-};
+const [algorithmSteps] = useState([
+“Step 1: Analyze Workload Patterns”,
+“Step 2: Identify Critical Coverage Days”,
+“Step 3: Assign Essential Roles”,
+“Step 4: Balance Workload Distribution”,
+“Step 5: Optimize Staff Utilization”,
+“Step 6: Generate Final Roster”
+]);
 
-/**
- * Algorithm steps displayed in the UI to show progress.
- */
-const ALGORITHM_STEPS = [
-  'Step 1: Analyze Workload Patterns',
-  'Step 2: Identify Critical Coverage Days',
-  'Step 3: Assign Essential Roles',
-  'Step 4: Balance Workload Distribution',
-  'Step 5: Optimize Staff Utilization',
-  'Step 6: Generate Final Roster'
+const [rosterOutput, setRosterOutput] = useState(null);
+
+const runAlgorithm = () => {
+if (isLoading || Object.keys(staffData).length === 0) {
+  console.warn('Cannot run algorithm: Staff data is still loading or not available');
+  return;
+}
+
+const days = [‘Mon’, ‘Tue’, ‘Wed’, ‘Thu’, ‘Fri’, ‘Sat’, ‘Sun’];
+const workloadByDay = [
+{ day: ‘Mon’, workload: workloadData.monday, priority: ‘High’ },
+{ day: ‘Tue’, workload: workloadData.tuesday, priority: ‘High’ },
+{ day: ‘Wed’, workload: workloadData.wednesday, priority: ‘Medium’ },
+{ day: ‘Thu’, workload: workloadData.thursday, priority: ‘Low’ },
+{ day: ‘Fri’, workload: workloadData.friday, priority: ‘Critical’ },
+{ day: ‘Sat’, workload: workloadData.saturday, priority: ‘High’ },
+{ day: ‘Sun’, workload: workloadData.sunday, priority: ‘Critical’ }
 ];
 
-/**
- * Calculates required staff per day based on workload and priority.
- * @param {Object} workloadData - Object containing workload minutes for each day
- * @returns {Array} Array of day objects with workload, priority, and staff requirements
- */
-const calculateRequiredStaff = (workloadData) => {
-  const dayPriorities = {
-    Mon: 'High',
-    Tue: 'High',
-    Wed: 'Medium',
-    Thu: 'Low',
-    Fri: 'Critical',
-    Sat: 'High',
-    Sun: 'Critical'
-  };
+
+// Step 1: Calculate required staff per day (assuming 400 minutes per staff member)
+const requiredStaff = workloadByDay.map(d => ({
+  ...d,
+  staffNeeded: Math.ceil(d.workload / 400)
+}));
+
+// Step 2: Assign Housekeeping first
+const roster = {};
+days.forEach(day => {
+  roster[day] = { HK: [], Sup: [], HM: [], CA: [], total: 0 };
+});
 
   const dayMapping = {
     Mon: 'monday',
@@ -99,13 +97,8 @@ const calculateRequiredStaff = (workloadData) => {
     Sun: 'sunday'
   };
 
-  return DAYS_OF_WEEK.map(day => ({
-    day,
-    workload: workloadData[dayMapping[day]],
-    priority: dayPriorities[day],
-    staffNeeded: Math.ceil(workloadData[dayMapping[day]] / MINUTES_PER_STAFF)
-  }));
-};
+// Step 3: Priority HK roles based on workload priority
+const sortedDays = requiredStaff.sort((a, b) => b.workload - a.workload);
 
 /**
  * Initializes an empty roster structure for all days.
@@ -154,16 +147,20 @@ const isStaffAssignedOnDay = (dayRoster, staffName) => {
 const assignStaffByRole = (roster, staffData, roleType, sortedDays, options = {}) => {
   const { allowMultiplePerDay = false, checkGlobalAssignment = true } = options;
 
-  const staffEntries = Object.entries(staffData).filter(
-    ([, staff]) => staff.primary === roleType
-  );
+// Step 6: Fill remaining roles
+Object.entries(staffData).forEach(([name, staff]) => {
+  if (staff.primary === 'CA') {
+    staff.availability.forEach(day => {
+      if (roster[day][staff.primary].length < 1 && !Object.values(roster[day]).flat().includes(name)) {
+        roster[day][staff.primary].push(name);
+        roster[day].total++;
+      }
+    });
+  }
+});
 
-  sortedDays.forEach(dayData => {
-    const { day, staffNeeded } = dayData;
+setRosterOutput({ roster, requiredStaff });
 
-    staffEntries.forEach(([name, staff]) => {
-      // Skip if staff is not available on this day
-      if (!staff.availability.includes(day)) return;
 
       // Skip if day quota is met (unless multiple allowed and still need staff)
       const currentCount = roster[day][roleType].length;
@@ -199,32 +196,21 @@ const generateRoster = (workloadData, staffData) => {
   // Step 1: Calculate required staff per day
   const requiredStaff = calculateRequiredStaff(workloadData);
 
-  // Step 2: Initialize empty roster structure
-  const roster = initializeRoster();
 
-  // Step 3: Sort days by priority weight and workload (descending)
-  const sortedDays = [...requiredStaff].sort((a, b) => {
-    const priorityDiff = PRIORITY_WEIGHTS[b.priority] - PRIORITY_WEIGHTS[a.priority];
-    return priorityDiff !== 0 ? priorityDiff : b.workload - a.workload;
+const analysis = [];
+Object.entries(rosterOutput.roster).forEach(([day, staff]) => {
+  const required = rosterOutput.requiredStaff.find(d => d.day === day);
+  const status = staff.total >= required.staffNeeded ? 'optimal' : 'understaffed';
+  analysis.push({
+    day,
+    assigned: staff.total,
+    required: required.staffNeeded,
+    status,
+    gap: required.staffNeeded - staff.total
   });
+});
+return analysis;
 
-  // Step 4: Assign Housekeepers first (highest volume role)
-  assignStaffByRole(roster, staffData, 'HK', sortedDays, {
-    allowMultiplePerDay: true,
-    checkGlobalAssignment: true
-  });
-
-  // Step 5: Assign Supervisors
-  assignStaffByRole(roster, staffData, 'Sup', sortedDays, {
-    allowMultiplePerDay: false,
-    checkGlobalAssignment: false
-  });
-
-  // Step 6: Assign Housemen
-  assignStaffByRole(roster, staffData, 'HM', sortedDays, {
-    allowMultiplePerDay: false,
-    checkGlobalAssignment: false
-  });
 
   // Step 7: Assign Common Area staff
   assignStaffByRole(roster, staffData, 'CA', sortedDays, {
@@ -235,48 +221,78 @@ const generateRoster = (workloadData, staffData) => {
   return { roster, requiredStaff };
 };
 
-/**
- * Generates analysis data comparing assigned vs required staff.
- * @param {Object} rosterOutput - Output from generateRoster function
- * @returns {Array|null} Analysis array or null if no roster data
- */
-const generateRosterAnalysis = (rosterOutput) => {
-  if (!rosterOutput) return null;
+if (isLoading) {
+return (
+  <div className="max-w-6xl mx-auto p-6 bg-white text-center">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Hospitality Rostering Algorithm</h1>
+      <p className="text-gray-600">Loading staff data...</p>
+    </div>
+    <div className="animate-pulse flex justify-center">
+      <div className="h-8 w-8 bg-blue-500 rounded-full"></div>
+    </div>
+  </div>
+);
+}
 
-  return Object.entries(rosterOutput.roster).map(([day, staff]) => {
-    const required = rosterOutput.requiredStaff.find(d => d.day === day);
-    const staffNeeded = required?.staffNeeded ?? 0;
-    const gap = staffNeeded - staff.total;
+if (loadError) {
+return (
+  <div className="max-w-6xl mx-auto p-6 bg-white">
+    <div className="mb-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">Hospitality Rostering Algorithm</h1>
+    </div>
+    <div className="bg-red-50 border-2 border-red-200 p-6 rounded-lg">
+      <div className="flex items-center mb-4">
+        <AlertCircle className="mr-2 text-red-500" size={24} />
+        <h2 className="text-xl font-semibold text-red-700">Error Loading Staff Data</h2>
+      </div>
+      <p className="text-red-600">{loadError}</p>
+      <button
+        onClick={loadStaffData}
+        className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+);
+}
 
-    return {
-      day,
-      assigned: staff.total,
-      required: staffNeeded,
-      status: gap <= 0 ? 'optimal' : 'understaffed',
-      gap: Math.max(0, gap)
-    };
-  });
-};
+return (
+<div className="max-w-6xl mx-auto p-6 bg-white">
+<div className="mb-8">
+<h1 className="text-3xl font-bold text-gray-900 mb-2">Hospitality Rostering Algorithm</h1>
+<p className="text-gray-600">Intelligent staff scheduling based on workload, availability, and operational requirements</p>
+</div>
 
-/**
- * AlgorithmStep Component - Displays a single step in the algorithm progress.
- * Uses React.memo for performance optimization to prevent unnecessary re-renders.
- */
-const AlgorithmStep = React.memo(({ step, index, isActive }) => (
-  <div
-    className={`p-4 rounded-lg border-2 transition-all ${
-      isActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-    }`}
-  >
-    <div className="flex items-center">
-      {isActive ? (
-        <CheckCircle className="mr-2 text-blue-500 flex-shrink-0" size={16} />
-      ) : (
-        <div className="w-4 h-4 rounded-full border-2 border-gray-300 mr-2 flex-shrink-0" />
-      )}
-      <span className={`text-sm ${isActive ? 'text-blue-700' : 'text-gray-500'}`}>
-        {step}
-      </span>
+  {/* Algorithm Steps */}
+  <div className="mb-8">
+    <h2 className="text-xl font-semibold mb-4 flex items-center">
+      <Clock className="mr-2" size={20} />
+      Algorithm Process
+    </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {algorithmSteps.map((step, index) => (
+        <div
+          key={index}
+          className={`p-4 rounded-lg border-2 transition-all ${
+            index <= currentStep
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-200 bg-gray-50'
+          }`}
+        >
+          <div className="flex items-center">
+            {index <= currentStep ? (
+              <CheckCircle className="mr-2 text-blue-500" size={16} />
+            ) : (
+              <div className="w-4 h-4 rounded-full border-2 border-gray-300 mr-2"></div>
+            )}
+            <span className={`text-sm ${index <= currentStep ? 'text-blue-700' : 'text-gray-500'}`}>
+              {step}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 ));
@@ -521,6 +537,23 @@ const RosteringAlgorithm = () => {
           {isRunning ? 'Running...' : 'Run Rostering Algorithm'}
         </button>
       </div>
+    </div>
+  )}
+
+  {/* Algorithm Logic Explanation */}
+  <div className="bg-blue-50 p-6 rounded-lg">
+    <h3 className="text-lg font-semibold mb-4">Algorithm Logic</h3>
+    <div className="space-y-3 text-sm">
+      <div><strong>1. Workload Analysis:</strong> Calculates required staff based on 300 task minutes per person</div>
+      <div><strong>2. Priority Assignment:</strong> Critical days (Friday/Sunday) get priority staffing</div>
+      <div><strong>3. Supervisor Coverage:</strong> Ensures at least one supervisor per day when available</div>
+      <div><strong>4. Skill Matching:</strong> Assigns staff based on primary roles and cross-training</div>
+      <div><strong>5. Availability Filtering:</strong> Only assigns staff who are available on specific days</div>
+      <div><strong>6. Optimization:</strong> Balances workload distribution and minimizes gaps</div>
+    </div>
+  </div>
+</div>
+
 
       {/* Roster Output Table */}
       {rosterOutput && (
